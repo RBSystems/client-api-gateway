@@ -1,0 +1,15 @@
+@import '~@angular/material/_theming.scss';
+@include mat-core();
+$lookout-primary: mat-palette($mat-red, 800, 700, 900);
+$lookout-accent: mat-palette($mat-teal, 600, 500, 700);
+$lookout-warn: mat-palette($mat-yellow, 700, 500, 800);
+$lookout-theme: mat-light-theme($lookout-primary, $lookout-accent, $lookout-warn);
+@include angular-material-theme($lookout-theme);
+$primary: mat-color($lookout-primary);
+$accent: mat-color($lookout-accent);
+$warn: mat-color($lookout-warn);
+@mixin lookout-theme($theme) {
+    $primary: map-get($theme, primary);
+    $accent: map-get($theme, accent);
+    $warn: map-get($theme, warn);
+}

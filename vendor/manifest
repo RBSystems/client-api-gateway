@@ -1,0 +1,21 @@
+{
+	"version": 0,
+	"dependencies": [
+		{
+			"importpath": "github.com/jessemillar/health",
+			"repository": "https://github.com/jessemillar/health",
+			"vcs": "git",
+			"revision": "f5140c4f83d54deeb5d0d21fa55ae9b7b1a1f663",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/jessemillar/jsonresp",
+			"repository": "https://github.com/jessemillar/jsonresp",
+			"vcs": "git",
+			"revision": "f6268670ca1a1b59f4e6503eb55e273576877eaf",
+			"branch": "master",
+			"notests": true
+		}
+	]
+}
