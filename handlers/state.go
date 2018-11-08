@@ -33,7 +33,9 @@ func SetRoomState(context echo.Context) error {
 		return context.JSON(http.StatusBadRequest, err)
 	}
 
-	url := fmt.Sprintf("http://%s/buildings/%s/rooms/%s", os.Getenv("AV_API_ADDRESS"), building, room)
+	address := os.Getenv("AV_API_ADDRESS")
+
+	url := fmt.Sprintf("http://%s/buildings/%s/rooms/%s", address, building, room)
 
 	req, err := http.NewRequest("PUT", url, bytes.NewReader(s))
 
