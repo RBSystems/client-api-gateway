@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/byuoitav/central-event-system/messenger"
+	"github.com/byuoitav/client-api-gateway/socket"
 	"github.com/byuoitav/common/log"
-	"github.com/byuoitav/configuration-database-tool/socket"
 	"github.com/labstack/echo"
 )
 
@@ -54,7 +54,7 @@ func UnsubscribeFromRoom(context echo.Context) error {
 func WriteEventsToSocket() {
 	for {
 		event := msgr.ReceiveEvent()
-
+		log.L.Infof("received event: %+v", event)
 		socket.M.WriteToSockets(event)
 	}
 }

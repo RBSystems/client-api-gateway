@@ -35,19 +35,12 @@ func init() {
 		unregister: make(chan *Client, 100),
 		clients:    make(map[*Client]bool),
 	}
+
 	go M.run()
 }
 
-func NewManager() *Manager {
-	hub := &Manager{
-		broadcast:  make(chan interface{}, 1000),
-		register:   make(chan *Client, 100),
-		unregister: make(chan *Client, 100),
-		clients:    make(map[*Client]bool),
-	}
-	go hub.run()
-
-	return hub
+func Useless() error {
+	return nil
 }
 
 func (h *Manager) WriteToSockets(message interface{}) {
@@ -97,6 +90,7 @@ func (h *Manager) GetStatus(context echo.Context) error {
 }
 
 func (h *Manager) run() {
+	log.Printf("running manager")
 	for {
 		select {
 		case client := <-h.register:
@@ -120,9 +114,11 @@ func (h *Manager) run() {
 				color.Unset()
 			}
 		case message := <-h.broadcast:
+			log.Printf("broadcasting message: %+v", message)
 			for client := range h.clients {
 				select {
 				case client.send <- message:
+					log.Printf("sent to %s", client.conn.RemoteAddr())
 				default:
 					close(client.send)
 					delete(h.clients, client)

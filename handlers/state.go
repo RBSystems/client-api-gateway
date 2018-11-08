@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/byuoitav/av-api/base"
 	"github.com/byuoitav/common/log"
@@ -19,8 +20,7 @@ func SetRoomState(context echo.Context) error {
 	building := context.Param("building")
 	room := context.Param("room")
 
-	var state *base.PublicRoom
-
+	var state base.PublicRoom
 	err := context.Bind(&state)
 	if err != nil {
 		log.L.Errorf("failed to bind body of request : %s", err.Error())
@@ -39,11 +39,20 @@ func SetRoomState(context echo.Context) error {
 
 	auth.AddAuthToRequest(req)
 
-	client := http.Client{}
-	resp, err := client.Do(req)
+	client := http.Client{
+		Timeout: 10 * time.Second,
+	}
 
-	var body *base.PublicRoom
+	log.L.Infof("setting state with body: %s", s)
+	resp, err := client.Do(req)
+	var body base.PublicRoom
 	b, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return context.JSON(http.StatusInternalServerError, err)
+	}
+	log.L.Infof("response: %s", b)
+	defer resp.Body.Close()
+
 	err = json.Unmarshal(b, &body)
 	if err != nil {
 		log.L.Errorf("failed to unmarshal response : %s", err.Error())
@@ -70,11 +79,18 @@ func GetRoomState(context echo.Context) error {
 		log.L.Errorf("failed to send get request : %s", err.Error())
 	}
 
-	var body *base.PublicRoom
 	b, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.L.Errorf("failed to read body", err.Error())
+		return context.JSON(http.StatusInternalServerError, err)
+	}
+	defer resp.Body.Close()
+
+	var body base.PublicRoom
 	err = json.Unmarshal(b, &body)
 	if err != nil {
 		log.L.Errorf("failed to unmarshal response : %s", err.Error())
+		log.L.Errorf("bytes: %s", b)
 		return context.JSON(http.StatusInternalServerError, err)
 	}
 

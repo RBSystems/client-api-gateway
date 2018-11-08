@@ -1,19 +1,22 @@
-import { Component, OnInit } from '@angular/core';
-import { Building, Room } from './objects';
-import { ApiService } from './services/api.service';
-import { SocketService } from './services/socket.service';
+import { Component, OnInit } from "@angular/core";
+import { Building, Room } from "./objects";
+import { ApiService } from "./services/api.service";
+import { SocketService } from "./services/socket.service";
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  selector: "app-root",
+  templateUrl: "./app.component.html",
+  styleUrls: ["./app.component.scss"]
 })
 export class AppComponent implements OnInit {
-  title = 'app';
+  title = "app";
   building: Building = new Building();
   room: Room = new Room();
   buildingList: Building[] = [];
   roomList: Room[] = [];
+
+  roomState: any;
+  payload: string;
 
   message: string;
   events: string[] = [];
@@ -27,11 +30,22 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     this.GetBuildings();
+    this.payload = `{
+  "displays": [
+    {
+      "name": "D1",
+      "power": "on",
+      "input": "HDMI1",
+      "blanked": false
+    }
+  ]
+}
+    `;
   }
 
   GetBuildings() {
     this.api.GetBuildingList().subscribe(val => {
-      if(val != null) {
+      if (val != null) {
         this.buildingList = val;
       }
     });
@@ -39,56 +53,60 @@ export class AppComponent implements OnInit {
 
   GetRoomList() {
     this.api.GetRoomList(this.building._id).subscribe(val => {
-      if(val != null) {
+      if (val != null) {
         this.roomList = val;
       }
     });
   }
 
   GetState() {
-    let roomSplit = this.room._id.split("-")
+    const roomSplit = this.room._id.split("-");
     this.api.GetState(roomSplit[0], roomSplit[1]).subscribe(val => {
-      
       this.message = JSON.stringify(val, null, 2);
     });
   }
 
   SetState() {
-    let roomSplit = this.room._id.split("-")
-    this.api.SetState(roomSplit[0], roomSplit[1], this.message).subscribe(val => {
+    const roomSplit = this.room._id.split("-");
+    const data = JSON.parse(this.payload);
+
+    console.log("setting state", data);
+    this.api.SetState(roomSplit[0], roomSplit[1], data).subscribe(val => {
       this.message = JSON.stringify(val, null, 3);
     });
   }
 
   UpdateFromEvents() {
     this.socket.getEventListener().subscribe(event => {
-      if(event != null && event.data != null) {
-        let e = event.data;
+      if (event != null && event.data != null) {
+        const e = event.data;
 
         this.events.push(JSON.stringify(e, null, 3));
       }
-    })
+    });
   }
 
   UpdateRoomSubscription() {
-    if(this.room._id == null) {
+    if (this.room._id === null) {
       return;
     }
 
     this.newSub = this.room._id;
 
-    if(this.oldSub != null) {
-      let r = this.oldSub.split("-");
+    if (this.oldSub != null) {
+      const r = this.oldSub.split("-");
       this.api.UnsubscribeToRoom(r[0], r[1]).subscribe(() => {
         this.events = [];
       });
     }
 
-    if(this.newSub != null) {
-      let r = this.newSub.split("-");
+    if (this.newSub != null) {
+      const r = this.newSub.split("-");
       this.api.SubscribeToRoom(r[0], r[1]).subscribe(() => {
         this.oldSub = this.newSub;
         this.events = [];
+
+        this.GetState();
       });
     }
   }
